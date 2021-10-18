@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>比分计算</title>
+    <meta name="viewport" content="min-width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="../css/bootstrap.min.css" />
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            font-size: 40px;
+            text-align: center;
+            vertical-align:middle;
+        }
+        #bgdiv {
+            max-width: 450px;
+            width: 100%;
+        }
+        .btn{
+            font-size: 30px;
+        }
+        .row{
+            align-items:center!important;
+        }
+        html,
+        body,
+        #bgdiv,
+        .home {
+            height: 100%;
+            width: 100%;
+            overflow:hidden
+        }
+    </style>
+  </head>
+  <body>
+      <div id="bgdiv">
+        <div class="row home" style="vertical-align:middle;justify-content: center;align-content: space-between" v-if="page==1">
+          <div class="row col-12 content" style="max-height: calc(100% - 75px);overflow-y: auto;">
+            <template v-for="item,index in member">
+              <div class="col-5 row ms-2 me-2">
+                  <div class="badge bg-secondary" @click="deleteMember(index)">{{item['name']}}</div>
+            </div>
+            <div class="col-7 row" style="flex-direction: column;">
+                <!-- <div class="col row mt-2 mb-2"  style="align-items:center;">
+                  <button class="btn btn-success col" @click="winLose(index,'win',-1)">ー</button>
+                  <span class="col">{{item['win']}}</span>
+                  <button class="btn btn-success col" @click="winLose(index,'win',1)">＋</button>
+                </div> -->
+                <div class="col row mt-2 mb-2"  style="align-items:center;">
+                  <button class="btn btn-danger col" @click="winLose(index,'lose',-1)">ー</button>
+                  <span class="col">{{item['lose']}}</span>
+                  <button class="btn btn-danger col" @click="winLose(index,'lose',1)">＋</button>
+                </div>
+            </div>
+          </template>
+          <div class="col-5 row ms-2 me-2">
+              <input id="add" type="text" placeholder="添加选手" style="
+              text-align: center;font-size: 30px;border-radius: .25rem;">
+        </div>
+        <div class="col-7 row" style="flex-direction: column;">
+          <button class="btn btn-info mt-2 mb-2" @click="addMember">添加选手</button>
+        </div>
+          </div>
+            <div class="row col-12">
+              
+              <button class="btn btn-primary mt-2 mb-2" @click="getResult">结算</button>
+            </div>
+        
+        </div>
+        <div class="row home" v-if="page==2" style="align-content: space-between">
+            <div class="col-12" style="max-height: calc(100% - 75px);overflow-y: auto;">
+                <h1 style="font-weight:bolder;">最终结果</h1>
+                <h2 class="ms-2 mb-2" style="text-align: left;" v-for="item in member">{{item['name']}}：{{Number(item['lose'])*5}}元（败{{item['lose']}}场）</h2>
+                <h2 class="ms-2 mb-2" style="text-align: right;"><br>合计：{{result}}元</h2>
+              </div>
+              <div class="col-12 row">
+                <button class="btn btn-primary mt-2 mb-2" @click="backPage">返回</button>
+              </div>
+            
+        </div>
+      </div>
+  </body>
+  <script>
+      var a = new Vue({
+          el:"#bgdiv",
+          data:{
+              member:[],
+              page:1,
+              result:0,
+          },
+          methods:{
+              winLose(index,wl,num){
+                  this.member[index][wl] = Number(this.member[index][wl]) + num
+                  localStorage.setItem('member',encodeURIComponent(JSON.stringify(this.member)))
+              },
+              memberGet(){
+                  this.member = JSON.parse(decodeURIComponent(localStorage.getItem('member')))
+                  if(this.member == ''||this.member == null){
+                    this.member = []
+                    localStorage.setItem('member',encodeURIComponent(JSON.stringify(this.member)))
+                  }
+              },
+              addMember(){
+                  if(document.getElementById('add').value != ""){
+                      let new1 = {
+                        name:document.getElementById('add').value,
+                        win:"0",
+                        lose:"0"
+                    }
+                    this.member.push(new1)
+                    document.getElementById('add').value = ""
+                  }
+                  localStorage.setItem('member',encodeURIComponent(JSON.stringify(this.member)))
+              },
+              deleteMember(index){
+                if(confirm("确定删除选手？")){
+                    this.member.splice(index,1)
+                }
+                localStorage.setItem('member',encodeURIComponent(JSON.stringify(this.member)))
+              },
+              getResult(){
+                this.result = 0
+                  for(let i=0;i<this.member.length;i++){
+                    this.result += Number(this.member[i]['lose'])*5
+                  }
+                  this.page = 2
+              },
+              backPage(){
+                  for(let i=0;i<this.member.length;i++){
+                    Vue.set(this.member[i],'win',0)
+                    Vue.set(this.member[i],'lose',0)
+                  }
+                  localStorage.setItem('member',encodeURIComponent(JSON.stringify(this.member)))
+                  this.page = 1
+              }
+          }
+      })
+      a.memberGet()
+  </script>
+  </html>
